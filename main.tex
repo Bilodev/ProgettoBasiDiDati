@@ -1,0 +1,529 @@
+\documentclass{article}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{longtable} % metti in preambolo
+\usepackage{xcolor}
+\usepackage{listings}
+
+
+
+\author{Bilotta Antonio}
+\title{Bookshelf Manager}
+\begin{document}
+\maketitle
+\tableofcontents
+\section{Idea del progetto}
+
+Il concetto di \textit{possedere} una vasta collezione di libri per la maggior parte non letti è un qualcosa di già esplorato
+da grandi autori quali \textbf{Umbero Eco}.\\ Una volta realizzato questo sistema, un utente più che possedere fisicamente dei titoli, avrà a disposizione un catalogo di volumi per tenere traccia di ciò che ha letto o meno.
+Una piattaforma del genere vuole essere d'aiuto per quei tipi di persone, come il sottoscritto, che hanno bisogno di un "percorso" chiaro e ben definito, per
+mantere e praticare con costanza un hobby quale può essere la lettura.
+
+\section{Considerazioni sulla realtà d'interesse}
+Ogni \textbf{Persona} sarà specializzata, con possibilità di overlapping, in \textbf{Utente}, o in \textbf{Admin}.\\
+O gni \textbf{Utente} avrà delle informazioni anagrafiche legate al proprio profilo, come
+\textit{nome, cognome, data di nascita}, oltre alla coppia \textit{email-password} che consentirà a questi
+di effettuare il login.\\ Gli \textbf{Admin}, utenti speciali,
+avranno accesso a delle aree speciali per caricare nuovi libri che saranno poi fruibili agli utenti.
+\\\\
+Ogni \textbf{Libro} avrà una sezione principale, che conserverà \textit{codice univoco, titolo originale, data prima edizione, voto medio}, a cui le varie \textbf{Edizioni},
+contenenti \textit{titolo tradotto, lingua, immagine di copertina, numero pagine, data di pubblicazione} e una breve \textit{didascalia},
+faranno riferimento, in modo che agli utenti un libro risulti letto in tutte le sue edizioni, nonostante abbiano usufruito solo di una.
+\\Ogni \textbf{Edizione} avrà inoltre una \textbf{Prefazione}, composta da \textit{titolo e data} scritta
+da un \textbf{Autore}.\\\\
+Il sistema conserverà anche informazioni su \textbf{Autori}, che siano di libri o di prefazioni di questi, tra queste informazioni sulla vita quali
+una piccola biografia, data di nascita e (in caso) di morte.
+Ogni libro sarà \textit{classificato} in \textbf{categorie} diverse (conservate con multivalore), queste rappresentano generi e temi analizzati.
+\\\\
+Gli utenti, possono, dopo aver letto un libro, valutare la lettura, infatti effettueranno (non obbligatoriamente) delle \textbf{Recensioni}, divise in voto numerico
+e commento, i libri così, potranno avere una valutazione generale data dalla media dei voti attribuiti dai lettori.
+\\\\
+Gli utenti avranno un numero totale di libri con il quale hanno interagito, poichè questi saranno divisi in due liste: libri letti, e da leggere
+in futuro.
+Per ogni utente sarà consevarto (opzionalmente) il libro che stanno attualmente leggendo.\\
+Vogliamo memorizzare anche gli \textbf{Editori}, con \textit{codice, nome, nazione, sede} che stampano i vari \textbf{libri}.
+\section{Specifiche Realtà d'interesse}
+Per semplificare l'implementazione possiamo, successivamente alla Progettazione Concettuale, discutere alcuni
+casi.
+\\\\
+Gli \textbf{Admin}, a livello implementativo, possono essere dei campi \textit{booleani} all'interno dell'entità \textbf{Utente}, vero se
+all'utente sono concessi dei permessi speciali, falso altrimenti.\\\\
+Inoltre le immagini dei libri voglio essere idealmente compresse e memorizzate fisicamente su un server con il quale l'applicazione
+comunicherà, memorizzeremo quindi il \textit{percorso relativo} di queste all'interno del server che le memorizza, in particolare
+il namespacing sarà il seguente: [\textit{codiceUnivicoLibro}]\textit{img.jpeg}.
+\\\\
+Le interazioni di ogni utente con i libri possono essere ridotte a un'interazione generica che conserva un flag di stato, 0 se letto, 1 se leggendo, 2 se finito.
+questa conserva anche (in maniera opzionale) un riferimento ad una \textbf{Recensione} in caso il libro sia stato letto.
+
+\section{Glossario dei termini}
+\begin{center}
+	\begin{tabularx}{1\textwidth} {
+			| >{\raggedright\arraybackslash}X
+			| >{\raggedright\arraybackslash}X |}
+		\hline
+		\textbf{Termine} & \textbf{Significato}                                                                     \\
+		\hline
+		Persona          & Insieme di dati anagrafici che qualificano un individo, che si specializza poi in utente \\
+
+		\hline
+		Admin            & Super utente che può aggiungere nuovi libri alla piattaforma                             \\
+		\hline
+
+		Utente           & Account di una persona che interagisce con libri e altri utenti                          \\
+		\hline
+
+		Autore           & Scrittore di libri o di Prefazioni di questi                                             \\
+		\hline
+
+		Prefazione       & Scritto, lungo o meno, che funge da premessa di un libro.                                \\
+		\hline
+
+		Libro            & Titolo originale, non fisico                                                             \\
+		\hline
+
+		Edizione         & Libro specifico, esiste fisicamente, poichè stampato da qualcuno                         \\
+		\hline
+
+		Recensione       & Pensiero e valutazione lasciato dagli utenti nei confronti di una lettura                \\
+		\hline
+
+		Editore          & Casa editrice che si occupa di redigere e mandare in stampa libri                        \\
+		\hline
+	\end{tabularx}
+\end{center}
+
+\newpage
+\section{Progettazione Concettuale}
+Procedendo con la progettazione concettuale della base di dati, si ottiene il
+seguente \textbf{schema EER}:
+\\
+\begin{center}
+	\includegraphics[width=1.1\textwidth]{img/BookshelfManagerEER.png}
+\end{center}
+
+\newpage
+\subsection{Dizionario delle Entità}
+
+Legenda: \colorbox{purple}{Sotto-entità}, \colorbox{yellow}{attributo multivalore},
+\colorbox{cyan}{attributo ridondante}, \colorbox{green}{entità debole}, \colorbox{pink}{chiave candidata}
+\\
+\begin{center}
+	\renewcommand{\arraystretch}{1.5} % più spazio verticale tra le righe  
+	% --- Tabella Dizionario delle Entità ---
+	\begin{longtable}{|p{2cm}|p{4cm}|p{3cm}|p{2.5cm}|}
+		\hline
+		\textbf{Termine}                & \textbf{Significato}                                           & \textbf{Attributi} & \textbf{Chiave} \\
+		\hline
+		\endfirsthead
+
+		Persona                         & Individuo che interagisce con la piattaforma                   &
+		\footnotesize
+		\begin{itemize}
+			\item ID
+			\item Nome
+			\item Cognome
+			\item \colorbox{pink}{Email}
+			\item Password
+		\end{itemize}    & ID                                                                                                             \\
+		\hline
+
+		\colorbox{purple}{Utente}       & Account di una persona per interagire con libri e altri utenti &
+		\begin{center}
+			/
+		\end{center}                  & \begin{center}
+			                                /
+		                                \end{center}                                                                                           \\
+		\hline
+
+		\colorbox{purple}{Admin}        & Utente con permessi speciali per caricare libri                &
+		\begin{center}
+			/
+		\end{center}                  & \begin{center}
+			                                /
+		                                \end{center}                                                                                           \\
+		\hline
+
+		Libro                           & Titolo originale, concettuale                                  &
+		\footnotesize
+		\begin{itemize}
+			\item ID
+			\item titolo
+			\item \colorbox{cyan}{voto}
+		\end{itemize} & ID                                                                                                          \\
+		\hline
+
+		\colorbox{green}{Edizione}      & Versione fisica di un libro                                    &
+		\footnotesize
+		\begin{itemize}
+			\item titolo
+			\item lingua
+			\item didascalia
+			\item copertina
+			\item numero pagine
+			\item \colorbox{yellow}{generi}
+		\end{itemize}             & \begin{center}
+			                            /
+		                            \end{center}                                                                                               \\
+		\hline
+
+		Autore                          & Scrittore di libri o prefazioni                                &
+		\footnotesize
+		\begin{itemize}
+			\item ID
+			\item nome
+			\item cognome
+			\item biografia
+			\item data nascita
+			\item data morte
+		\end{itemize}              & ID                                                                                                         \\
+		\hline
+
+		Prefazione                      & Premessa di un libro                                           &
+		\footnotesize
+		\begin{itemize}
+			\item ID
+			\item titolo
+		\end{itemize}                 & ID                                                                                                      \\
+		\hline
+
+		Lettura                         & Completamento di una edizione da parte di un utente            &
+		\begin{center}
+			/
+		\end{center}                  & \begin{center}
+			                                /
+		                                \end{center}                                                                                           \\
+		\hline
+
+		\colorbox{green}{Recensione}    & Valutazione di un libro                                        &
+		\footnotesize
+		\begin{itemize}
+			\item voto
+			\item descrizione
+		\end{itemize}               & \begin{center}
+			                              /
+		                              \end{center}                                                                                             \\
+		\hline
+		Editore                         & Casa editrice                                                  &
+		\footnotesize
+		\begin{itemize}
+			\item ID
+			\item nome
+			\item nazione
+			\item sede
+		\end{itemize}                 & ID                                                                                                      \\
+		\hline
+	\end{longtable}
+\end{center}
+
+
+\subsection{Dizionario delle Relazioni}
+\begin{center}
+	\renewcommand{\arraystretch}{1.5} % più spazio verticale tra le righe  
+	% --- Tabella Dizionario delle Entità ---
+	\begin{longtable}{|p{2cm}|p{4cm}|p{3cm}|p{2	cm}|}
+		\hline
+		\textbf{Relazione}                        & \textbf{Descrizione}                                   & \textbf{Entità coinvolte} & \textbf{Attributi} \\
+		\hline
+		\endfirsthead
+
+
+		Sta leggendo                              & Un utente è impegnato nella lettura di uno o più libri &
+		Utente(0,N) \vphantom{2}Edizione(0,M)     & /                                                                                                       \\
+		\hline
+
+		Vuole leggere                             & Un utente salva una lista di libri da leggere          &
+		Utente(0,N) \vphantom{2}Edizione(0,M)     & /                                                                                                       \\
+		\hline
+
+		Concludere                                & Un Utente ha concluso delle letture                    &
+		Utente(0,N) \vphantom{2}Lettura(1,1)      & data fine                                                                                               \\
+		\hline
+
+		Appartenere                               & Una recensione appartiene a una lettura                &
+		Recensione(1,1) \vphantom{2}Lettura(0,1)  & /                                                                                                       \\
+		\hline
+
+		Riferire                                  & Una lettura si riferisce ad un'edizione                &
+		Lettura(1,1) \vphantom{2}Edizione(0,N)    & /                                                                                                       \\
+		\hline
+
+		Pubblicare                                & Un editore pubblica un'edizione di un libro            &
+		Editore(1,N) \vphantom{2}Edizione(1,1)    & data                                                                                                    \\
+		\hline
+
+		RegistrareE                               & Admin registra un'edizione                             &
+		Edizione(1,1)  \vphantom{2}Admin(0,N)     & data                                                                                                    \\
+		\hline
+
+		RegistrareL                               & Admin registra un libro                                &
+		Libro(1,1)  \vphantom{2}Admin(0,N)        & data                                                                                                    \\
+		\hline
+
+		Stampare                                  & Un libro è stampato in diverse edizioni                &
+		Edizione(1,1) \vphantom{2}Libro(0,N)      & /                                                                                                       \\
+		\hline
+
+		ScrivereL                                 & Un autore scrive un libro                              &
+		Autore(1,N) \vphantom{2}Libro(1,1)        & data prima edizione                                                                                     \\
+		\hline
+
+		ScrivereP                                 & Un autore scrive una prefazione                        &
+		Autore(0,N) \vphantom{2}Prefazione(1,1)   & data                                                                                                    \\
+		\hline
+
+
+		Anticipare                                & Una prefazione anticipa un'edizione di un libro        &
+		Prefazione(1,1) \vphantom{2}Edizione(0,1) & data                                                                                                    \\
+		\hline
+	\end{longtable}
+\end{center}
+
+\subsection{Vincoli non esprimibili}
+\footnotesize
+\begin{itemize}
+	\item L'attributo \textbf{voto} di un libro e delle recensioni deve essere un numero $n \pm 0.5$, con $0.5 \leq n \leq 9.5$
+	\item L'attributo data di morte di un autore è opzionale.
+	\item L'attributo email di un utente è univoco.
+\end{itemize}
+\section{Tavole}
+
+\subsection{Tavole dei volumi}
+È riportata di seguito la tavola dei volumi della base di dati
+
+\begin{center}
+	\renewcommand{\arraystretch}{1.5} % più spazio verticale tra le righe  
+	% --- Tabella Dizionario delle Entità ---
+	\begin{longtable}{|l|c|c|}
+		\hline
+		\textbf{Concetto} & \textbf{Tipo} & \textbf{Carico Applicativo} \\
+		\hline
+		\endfirsthead
+		Persona           & E             & 100                         \\
+		\hline
+		Utente            & E             & 95                          \\
+		\hline
+		Admin             & E             & 5                           \\
+		\hline
+		Concludere        & R             & 300                         \\
+		\hline
+		Vuole leggere     & R             & 400                         \\
+		\hline
+		Sta Leggendo      & R             & 50                          \\
+		\hline
+		Lettura           & E             & 300                         \\
+		\hline
+		Appartenere       & R             & 150                         \\
+		\hline
+		Recensione        & E             & 150                         \\
+		\hline
+		Riferire          & R             & 250                         \\
+		\hline
+		Edizione          & E             & 300                         \\
+		\hline
+		RegistrareE       & R             & 300                         \\
+		\hline
+		RegistrareL       & R             & 100                         \\
+		\hline
+		Pubblicare        & R             & 100                         \\
+		\hline
+		Editore           & E             & 5                           \\
+		\hline
+		Stampare          & R             & 300                         \\
+		\hline
+		Libro             & E             & 100                         \\
+		\hline
+		ScrivereL         & R             & 100                         \\
+		\hline
+		ScrivereP         & R             & 30                          \\
+		\hline
+		Prefazione        & E             & 30                          \\
+		\hline
+		Autore            & E             & 20                          \\
+		\hline
+		Anticipare        & R             & 30                          \\
+		\hline
+	\end{longtable}
+\end{center}
+
+\subsection{Tavole delle operazioni}
+		\renewcommand{\arraystretch}{1.5}
+		\begin{tabular}{|l|c|c|}
+			\hline
+			\textbf{Operazione}                                                 & \textbf{Tipo} & \textbf{Frequenza} \\
+			\hline
+			Registrazione nuovo utente                                          & I             & 10/gg              \\ \hline
+			Login utente                                                        & I             & 40/gg              \\ \hline
+			Aggiunta libro da parte di un admin (RegistrareL)                   & I             & 2/gg               \\ \hline
+			Aggiunta edizione da parte di un admin (RegistrareE)                & I             & 5/gg               \\\hline
+			Inserimento di una lettura completata (Concludere)                  & I             & 15/gg              \\\hline
+			Inserimento di una recensione associata a una lettura (Appartenere) & I             & 10/gg              \\\hline
+			Aggiunta libro alla lista “Vuole leggere”                           & I             & 20/gg              \\\hline
+			Aggiornamento stato lettura                                         & I             & 10/gg              \\\hline
+			Generazione del voto medio di un libro                              & B             & 10/gg              \\\hline
+			Import massivo nuovi editori                                        & B             & 1/settimana        \\
+			\hline
+		\end{tabular}
+
+
+\section{Ristrutturazione}
+\subsection{Analisi delle ridondanze}
+Il dato ridondante è l'attributo "voto" dell'entità Libro.
+Infatti sarebbe possibile ottenere la media dei voti attraversando le letture che fanno riferimento a tale libro, per accedere ai voti delle
+recensioni, effettuando, poi, una media aritmetica. \\
+Supponendo che l'attributo pesi \textbf{4 byte}, essendo un normale intero, e considerando il carico applicativo
+dell'entità libro pari a 100 allora occupiamo circa \textbf{400 byte}.\\
+Calcoliamo, con le tavole degli accessi se conviene mantenere o meno tale attributo.
+
+\subsection{Tavole degli accessi}
+
+Dalla tavola delle operazioni, risultano coinvolte nell'utilizzo del voto medio
+solo le seguenti operazioni:
+
+\vspace{1cm} % spazio sotto la linea
+\noindent
+\textbf{Operazione 6: Inserimento di una recensione (frequenza: 10/gg)}
+\\\\
+Ridondanza
+\\\\
+\begin{tabular}{|l|c|c|c|}
+	\hline
+	\textbf{Entità/Relazioni} & \textbf{Tipo} & \textbf{Accessi} & \textbf{Tipo di accesso} \\
+	\hline
+	Recensione                & E             & 1                & S                        \\
+	Appartenere               & R             & 1                & S                        \\
+	Lettura                   & E             & 1                & S                        \\
+	Riferire                  & R             & 1                & S                        \\
+	Edizione                  & E             & 3                & S                        \\
+	Stampare                  & R             & 3                & S                        \\
+	Libro                     & E             & 1                & L                        \\
+	Libro                     & E             & 1                & S                        \\
+	\hline
+\end{tabular}
+\\\\
+$Totale = [2TOT_S + TOT_L] \cdot FREQUENZA =  [2\cdot 11+ 1] \cdot 10/gg = 230$ accessi/gg
+\\\\\\No Ridondanza
+\\\\\begin{tabular}{|l|c|c|c|}
+	\hline
+	\textbf{Entità/Relazioni} & \textbf{Tipo} & \textbf{Accessi} & \textbf{Tipo di accesso} \\
+	\hline
+	Recensione                & E             & 1                & S                        \\
+	Appartenere               & R             & 1                & S                        \\
+	\hline
+\end{tabular}
+\\\\
+$Totale = [2TOT_S + TOT_L] \cdot FREQUENZA =  [2\cdot 2 + 0] \cdot 10/gg = 40$ accessi/gg
+
+\vspace{0.5cm} % spazio sopra la linea
+\hrule
+\vspace{0.5cm} % spazio sotto la linea
+
+\noindent
+\textbf{Operazione 9: Generazione del voto medio di un libro (operazione batch, 10/gg) }
+\\\\
+Ridondanza
+\\\\
+\begin{tabular}{|l|c|c|c|}
+	\hline
+	\textbf{Entità/Relazioni} & \textbf{Tipo} & \textbf{Accessi} & \textbf{Tipo di accesso} \\
+	\hline
+	Libro                     & E             & 1                & L                        \\
+	\hline
+\end{tabular}
+\\\\
+$Totale = [2TOT_S + TOT_L] \cdot FREQUENZA =  [0 + 1] \cdot 10/gg = 10$ accessi/gg
+\\\\\\No Ridondanza
+\\\\\begin{tabular}{|l|c|c|c|}
+	\hline
+	\textbf{Entità/Relazioni} & \textbf{Tipo} & \textbf{Accessi} & \textbf{Tipo di accesso} \\
+	\hline
+	Libro                     & E             & 1                & L                        \\
+	Stampare                  & R             & 3                & L                        \\
+	Edizione                  & E             & 3                & L                        \\
+	Riferire                  & R             & 1                & L                        \\
+	Lettura                   & E             & 1                & L                        \\
+	Appartenere               & R             & 1                & L                        \\
+	Recensione                & E             & 1                & L                        \\
+	\hline
+\end{tabular}
+\\\\
+$Totale = [2TOT_S + TOT_L] \cdot FREQUENZA =  [0 + 11] \cdot 10/gg = 110$ accessi/gg
+
+\subsubsection*{Conclusione}
+
+Totale accessi con ridondanza $= (230+10) \ a/gg + 400byte$
+\\
+Totale accessi senza ridondanza $= (110+40) \ a/gg$
+\\
+Conviene eliminare il dato ridondante.
+
+\subsection{Eliminazione Ridondanza}
+
+\vspace{0.5cm}
+\includegraphics[width=100px]{img/EliminazioneRidondanze.png}
+
+\subsection{Eliminazione Gerarchie}
+Lo schema inizialmente presenta la seguente specializzazione dell'entità
+\textbf{Persona}.
+\vspace{0.5cm}
+\\
+\vspace{0.5cm}
+\includegraphics[width=130px]{img/EliminazioneGerarchie_Prima.png}
+\\
+
+\noindent
+Procediamo sostituendo la gerarchia con due nuove relazioni che rendono le entità figlie due nuove entità deboli.
+\\
+\vspace{0.5cm}
+
+\includegraphics[width=130px]{img/EliminazioneGerarchie.png}
+\subsection{Eliminazione Attributi Multivalore}
+\vspace{0.3cm}
+\includegraphics[width=130px]{img/EliminazioneMultivalore_Prima.png}
+\vspace{0.3cm}
+\\
+Sostituiamo all'attiributo multivalore \textbf{generi} l'entità \textbf{Genere} che sarà in relazione con un'\textbf{Edizione} con molteplicità $N:1$\\
+\\
+\includegraphics[width=120px]{img/EliminazioneMultivalore.png}
+\\
+\subsection{Schema EER ristrutturato}
+\vspace{0.5cm}
+\begin{center}
+	\includegraphics[width=1.1\textwidth]{img/BookshelfManagerEER_Ristrutturato.png}
+\end{center}
+\section{Progettazione Logica}
+\subsection{Schema relazionale}
+Lo schema EER ristrutturato viene mappato nel seguente schema logico, implementiamo anche
+ciò scritto nelle \textbf{Considerazioni sulla realta d'interesse}.
+Rinominiamo le chiavi primarie del tipo ID in modo che siano nel formato [nomeEntità]ID, per una maggiore chiarezza.
+\newline \newline
+UTENTE(\underline{utenteID}, nome, cognome, email, password, isAdmin)\\\\
+Libro(\underline{libroID}, titolo, voto, dataPrimaEdizione, autoreID$\uparrow$)\\\\
+Genere(\underline{genereID}, genere)\\\\
+Editore(\underline{editoreID}, nome, sede, nazione)\\\\
+Edizione(\underline{edizioneID}, \underline{editoreID}$\uparrow$, \underline{libroID}$\uparrow$, titolo, lingua, didascalia, numeroPagine)\\\\
+Autore(\underline{autoreID}, nome, cognome, biografia, dataNascita, dataMorte)\\\\
+Prefazione(\underline{prefazioneID}, titoloEdizione, autoreID$\uparrow$)\\\\
+CLASSIFICARE(\underline{EdizioneID}$\uparrow$, \underline{genereID}$\uparrow$)\\\\
+LETTURA(\underline{utenteID}$\uparrow$, \underline{EdizioneID}$\uparrow$, status, dataFine, voto, mezzo, descrizione)\\\\
+\noindent
+\\
+Abbiamo accorpato l'entià debole \textbf{Recensione} nella relazione \textbf{LETTURA} poichè le chiavi di queste due coincidono, inoltre con il flag status indichiamo se il libro è letto oppure se si sta leggendo, o si pianifica di leggerlo, tenendo, però a mente,
+che queste ultime due opzioni implicano, che \textit{LETTURA.dataFine, LETTURA.voto, Lettura.mezzo, LETTURA.descrizione} siano NULL.
+Notiamo che il campo voto sarà un intero da $0$ a $10$, se assume valore pari a $10$, allora il campo booleano mezzo, sarà $0$
+poichè accettiamo mezzi voti (1.5, 3.5, 9.5, etc) solo se non eccedono il massimo, quindi  $10$
+\subsection{Normalizzazione}
+Lo schema relazionale rispetta le condizioni della \textbf{1NF}, poichè gli attributi di qualsiasi relazione sono atomici.
+Sono rispettate anche le condizioni della \textbf{2NF}, poichè ogni attiributo di qualsiasi relazione non dipende 
+parzialmente dalla chiave. \\
+Lo schema è in \textbf{3NF} poichè non esistono dipendenze in cui attributi non primi (non parte di chiave) dipendono da attributi non chiave.\\
+L'unica violazione della \textbf{BCNF} riguarda il campo \textit{Utente.email}, in quanto questo è univoco, quindi determina gli altri, però non è superchiave.
+Decidiamo di \textbf{mantenere questa violazione}, per avere una maggiore coesione tra gli \textbf{ID} e per far sì che siano tutti numerici.
+
+Di conseguenza, non ci sono ridondanze né anomalie di aggiornamento.
+\section{Progettazione Fisica}
+\subsection{Creazione delle tabelle}
+\lstinputlisting[language=SQL]{creazioneTabelle.sql}
+\subsection{Definizione delle operazioni}
+\lstinputlisting[language=SQL]{operazioni.sql}
+\section{Applicazione del Database}
+\end{document}
