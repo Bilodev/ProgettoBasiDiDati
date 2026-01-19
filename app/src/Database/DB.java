@@ -30,6 +30,23 @@ public class DB {
     public static String searchBookQuery =
         "SELECT * FROM Edizione e1 JOIN Editore e2 ON e1.editoreID = e2.editoreID JOIN Libro l ON l.libroID=e1.libroID JOIN Autore a ON a.autoreID = l.autoreID  WHERE e1.titolo LIKE \"%s\"";
 
+    public static String masterQuery =
+        "SELECT l.status, l.voto, l.mezzo, l.descrizione AS recensione, l.dataFine, e.didascalia AS didascaliaEdizione, e.titolo AS titoloEdizione, e.lingua, e.numeroPagine, li.titolo AS titoloLibro, li.dataPrimaEdizione, a.nome AS nomeAutore, a.cognome AS cognomeAutore, ed.nome AS nomeEditore, ed.nazione, g.genere FROM Edizione e JOIN Libro li          ON li.libroID = e.libroID JOIN Autore a          ON a.autoreID = li.autoreID JOIN Editore ed        ON ed.editoreID = e.editoreID LEFT JOIN LETTURA l    ON l.edizioneID = e.edizioneID AND l.utenteID = %s LEFT JOIN CLASSIFICARE c ON c.edizioneID = e.edizioneID LEFT JOIN Genere g       ON g.genereID = c.genereID WHERE e.edizioneID = %s;";
+
+    public static String aggiungiLettura =
+        "INSERT INTO LETTURA (utenteID, edizioneID, status) VALUES (%s, %s, \"%s\");";
+    public static String aggiornaLettura =
+        "UPDATE LETTURA SET status=\"%s\" WHERE utenteID=%s AND edizioneID=%s;";
+
+    public static String finisciLettura =
+        "UPDATE LETTURA SET status='finito', dataFine=CURRENT_DATE() WHERE utenteID=%s AND edizioneID=%s;";
+
+    public static String getMediaLibro =
+        "SELECT AVG(l.voto + l.mezzo * 0.5) AS votoMedio FROM LETTURA l JOIN Edizione e ON l.edizioneID = e.edizioneID WHERE l.voto IS NOT NULL AND e.libroID = %s;";
+
+    public static String aggiungiRecensione =
+        "UPDATE LETTURA SET voto=%s, mezzo=%s, descrizione='%s' WHERE utenteID=%s AND edizioneID=%s";
+
     public DB()
     {
         Properties props = new Properties();

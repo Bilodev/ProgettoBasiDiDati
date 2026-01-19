@@ -8,4 +8,6 @@ public class Global {
     public static DB db;
     public static Utente utente = null;
     public static JFrame mainFrame;
+    public static String[] statusPossibili = {"da_leggere", "in_lettura", "finito"};
+
 }

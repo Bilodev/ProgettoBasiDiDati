@@ -1,0 +1,25 @@
+\contentsline {section}{\numberline {1}Idea del progetto}{1}{}%
+\contentsline {section}{\numberline {2}Considerazioni sulla realtà d'interesse}{1}{}%
+\contentsline {section}{\numberline {3}Specifiche Realtà d'interesse}{2}{}%
+\contentsline {section}{\numberline {4}Glossario dei termini}{3}{}%
+\contentsline {section}{\numberline {5}Progettazione Concettuale}{4}{}%
+\contentsline {subsection}{\numberline {5.1}Dizionario delle Entità}{5}{}%
+\contentsline {subsection}{\numberline {5.2}Dizionario delle Relazioni}{6}{}%
+\contentsline {subsection}{\numberline {5.3}Vincoli non esprimibili}{7}{}%
+\contentsline {section}{\numberline {6}Tavole}{7}{}%
+\contentsline {subsection}{\numberline {6.1}Tavole dei volumi}{7}{}%
+\contentsline {subsection}{\numberline {6.2}Tavole delle operazioni}{8}{}%
+\contentsline {section}{\numberline {7}Ristrutturazione}{9}{}%
+\contentsline {subsection}{\numberline {7.1}Analisi delle ridondanze}{9}{}%
+\contentsline {subsection}{\numberline {7.2}Tavole degli accessi}{9}{}%
+\contentsline {subsection}{\numberline {7.3}Eliminazione Ridondanza}{10}{}%
+\contentsline {subsection}{\numberline {7.4}Eliminazione Gerarchie}{10}{}%
+\contentsline {subsection}{\numberline {7.5}Eliminazione Attributi Multivalore}{11}{}%
+\contentsline {subsection}{\numberline {7.6}Schema EER ristrutturato}{12}{}%
+\contentsline {section}{\numberline {8}Progettazione Logica}{12}{}%
+\contentsline {subsection}{\numberline {8.1}Schema relazionale}{12}{}%
+\contentsline {subsection}{\numberline {8.2}Normalizzazione}{13}{}%
+\contentsline {section}{\numberline {9}Progettazione Fisica}{13}{}%
+\contentsline {subsection}{\numberline {9.1}Creazione delle tabelle}{13}{}%
+\contentsline {subsection}{\numberline {9.2}Definizione delle operazioni}{16}{}%
+\contentsline {section}{\numberline {10}Applicazione del Database}{17}{}%

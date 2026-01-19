@@ -1,5 +1,6 @@
 package GUI.Pages;
 
+import Beans.Edizione;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import javax.swing.SpinnerNumberModel;
 
 public class LibriTrovatiFrame extends JFrame {
     private final ArrayList<String> libriTrovati = new ArrayList<>();
-    private final ArrayList<Integer> edizioniID = new ArrayList<>();
+    private final ArrayList<Edizione> edizioni = new ArrayList<>();
 
     public LibriTrovatiFrame()
     {
@@ -22,10 +23,10 @@ public class LibriTrovatiFrame extends JFrame {
         setTitle("Edizioni Trovate");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
-    public void addLibro(String s, Integer edizioneID)
+    public void addLibro(String s, Edizione e)
     {
         libriTrovati.add(s);
-        edizioniID.add(edizioneID);
+        edizioni.add(e);
     }
     @Override public void setVisible(boolean b)
     {
@@ -49,8 +50,8 @@ public class LibriTrovatiFrame extends JFrame {
             subPanel.add(viewBtn);
 
             viewBtn.addActionListener((e) -> {
-                BookFrame bp = new BookFrame(
-                    edizioniID.get(Integer.parseInt(spinner.getValue().toString()) - 1));
+                int index = Integer.parseInt(spinner.getValue().toString()) - 1;
+                BookFrame bp = new BookFrame(edizioni.get(index));
                 bp.setVisible(true);
             });
 

@@ -24,6 +24,7 @@ import javax.swing.SpinnerNumberModel;
 public class HomePage {
     private final ArrayList<Edizione> edizioni = new ArrayList<>();
     private final ArrayList<Lettura> letture = new ArrayList<>();
+    JPanel gotoBookPanel = new JPanel(new FlowLayout());
 
     private void renderAdmin(JPanel panel)
     {
@@ -52,6 +53,33 @@ public class HomePage {
         panel.add(addEditionBtn);
         panel.add(addPrefazioneBtn);
     }
+
+    private int refreshText(JTextArea booksReadTextArea, JTextArea booksToReadTextArea)
+    {
+        edizioni.clear();
+        letture.clear();
+        getBookList();
+        booksReadTextArea.setText("LETTI:\n\n");
+        booksToReadTextArea.setText("DA LEGGERE:\n\n");
+
+        int c = 0;
+        for (int i = 0; i < edizioni.size(); i++) {
+            Lettura l = letture.get(i);
+            String str = String.format(" %s) %s\n", c + 1, edizioni.get(i).toString());
+
+            if (l.getStatus().equals("finito")) {
+                booksReadTextArea.append(str);
+                c++;
+            }
+            else if (l.getStatus().equals("da_leggere")) {
+                booksToReadTextArea.append(str);
+                c++;
+            }
+        }
+        // se ci sono solo libri leggenti torna 0
+        return c;
+    }
+
     private void renderUser(JPanel panel)
     {
         JTextField searchBookTextField = new JTextField();
@@ -63,44 +91,31 @@ public class HomePage {
 
         JTextArea booksReadTextArea = new JTextArea();
         booksReadTextArea.setEditable(false);
-        booksReadTextArea.append("LETTI:\n\n");
 
         JTextArea booksToReadTextArea = new JTextArea();
         booksToReadTextArea.setEditable(false);
-        booksToReadTextArea.append("DA LEGGERE:\n\n");
 
         booksReadTextArea.setBounds(10, 350, Global.mainFrame.getWidth() / 2 - 10, 300);
         booksToReadTextArea.setBounds(
             Global.mainFrame.getWidth() / 2 + 10, 350, Global.mainFrame.getWidth() / 2 - 10, 300);
 
-        for (int i = 0; i < edizioni.size(); i++) {
-            Lettura l = letture.get(i);
-            String str = String.format(" %s) %s (%s)", i + 1, edizioni.get(i).toString(),
-                (l.getRecensione().getVoto() != null) ? "" : l.getRecensione().getVoto());
+        int c = refreshText(booksReadTextArea, booksToReadTextArea);
 
-            if (l.getStatus().equals("finito"))
-                booksReadTextArea.append(str);
-            else if (l.getStatus().equals("da_leggere"))
-                booksToReadTextArea.append(str);
-        }
-
-        if (!edizioni.isEmpty()) {
-            JSpinner spinner = new JSpinner(new SpinnerNumberModel(1, 1, edizioni.size(), 1));
+        if (!edizioni.isEmpty() && c != 0) {
+            JSpinner spinner = new JSpinner(new SpinnerNumberModel(1, 1, edizioni.size() + 1, 1));
             JButton viewBtn = new JButton("VAI AL LIBRO");
 
-            JPanel subPanel = new JPanel(new FlowLayout());
-            subPanel.add(spinner);
-            subPanel.add(viewBtn);
+            gotoBookPanel.add(spinner);
+            gotoBookPanel.add(viewBtn);
 
             viewBtn.addActionListener((e) -> {
-                BookFrame bp =
-                    new BookFrame(edizioni.get(Integer.parseInt(spinner.getValue().toString()) - 1)
-                                      .getEdizioneID());
+                BookFrame bp = new BookFrame(
+                    edizioni.get(Integer.parseInt(spinner.getValue().toString()) - 1));
                 bp.setVisible(true);
             });
 
-            subPanel.setBounds(10, 270, Global.mainFrame.getWidth() / 2, 30);
-            Global.mainFrame.add(subPanel);
+            gotoBookPanel.setBounds(10, 270, Global.mainFrame.getWidth() / 2, 30);
+            Global.mainFrame.add(gotoBookPanel);
         }
 
         searchBookBtn.addActionListener(e -> {
@@ -124,7 +139,7 @@ public class HomePage {
                     // e2: Editore
                     String s = String.format("%s - %s %s (%s)", edizione, rs.getString("a.nome"),
                         rs.getString("a.cognome"), rs.getString("e2.nome"));
-                    libriTrovatiPage.addLibro(s, edizione.getEdizioneID());
+                    libriTrovatiPage.addLibro(s, edizione);
                 }
             }
             catch (SQLException ex) {
@@ -133,10 +148,22 @@ public class HomePage {
             libriTrovatiPage.setVisible(true);
         });
 
-        panel.add(booksReadTextArea);
-        panel.add(booksToReadTextArea);
+        if (!edizioni.isEmpty()) {
+            panel.add(booksReadTextArea);
+            panel.add(booksToReadTextArea);
+        }
         panel.add(searchBookTextField);
         panel.add(searchBookBtn);
+
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(e -> {
+            if (refreshText(booksReadTextArea, booksToReadTextArea) == 0)
+                gotoBookPanel.setVisible(false);
+            else
+                gotoBookPanel.setVisible(true);
+        });
+        refreshButton.setBounds(30, 40, 100, 20);
+        panel.add(refreshButton);
     }
 
     private void getBookList()
@@ -160,7 +187,7 @@ public class HomePage {
 
                 Edizione edizione = new Edizione();
 
-                edizione.setEdizioneID(rs.getInt("e_edizioneID"));
+                edizione.setEdizioneID(rs.getInt("e.edizioneID"));
                 edizione.setEditoreID(rs.getInt("editoreID"));
                 edizione.setLibroID(rs.getInt("libroID"));
                 edizione.setTitolo(rs.getString("titolo"));
