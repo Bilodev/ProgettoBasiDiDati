@@ -1,2 +1,2 @@
 # Documentazione
-[Clicca qui](docs/main.pdf)
+[Clicca qui](doc/main.pdf)
