@@ -4,7 +4,6 @@ import Beans.Edizione;
 import Database.DB;
 import GUI.Global;
 import java.awt.Image;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -111,12 +110,15 @@ public class BookFrame extends JFrame {
         JLabel autoreLabel = new JLabel(nomeAutore + " " + cognomeAutore);
         JLabel editoreLabel = new JLabel(nomeEditore);
         JLabel linguaLabel = new JLabel(lingua.substring(0, 3));
-        JLabel didascaliaLabel = new JLabel(didascaliaEdizione);
+        JTextArea didascaliaTextArea = new JTextArea();
+        didascaliaTextArea.setEditable(false);
+        didascaliaTextArea.setText(didascaliaEdizione);
+        didascaliaTextArea.setBounds(50, 180, 240, 200);
+        didascaliaTextArea.setLineWrap(true);
 
         autoreLabel.setBounds(100, 100, 200, 30);
         editoreLabel.setBounds(100, 120, 200, 30);
         linguaLabel.setBounds(100, 130, 200, 30);
-        didascaliaLabel.setBounds(50, 150, 300, 300);
 
         String imagePath = String.format("src/Database/img/%s.png", edizione.getEdizioneID());
         try {
@@ -197,7 +199,7 @@ public class BookFrame extends JFrame {
                 if (!selectedStatus.equals("finito"))
                     return;
 
-                int votoDato = (int) Math.ceil((Double) spinner.getValue());
+                int votoDato = (int) Math.floor((Double) spinner.getValue());
                 boolean mezzoDato = ((Double) spinner.getValue() - votoDato) > 0;
                 Global.db.update(String.format(DB.aggiungiRecensione, votoDato, mezzoDato,
                     descrizioneTextArea.getText(), Global.utente.getUtenteID(),
@@ -218,7 +220,7 @@ public class BookFrame extends JFrame {
         add(autoreLabel);
         add(editoreLabel);
         add(linguaLabel);
-        add(didascaliaLabel);
+        add(didascaliaTextArea);
 
         super.setVisible(true);
     }

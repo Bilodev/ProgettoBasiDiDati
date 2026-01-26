@@ -24,7 +24,8 @@ import javax.swing.SpinnerNumberModel;
 public class HomePage {
     private final ArrayList<Edizione> edizioni = new ArrayList<>();
     private final ArrayList<Lettura> letture = new ArrayList<>();
-    JPanel gotoBookPanel = new JPanel(new FlowLayout());
+    private JPanel gotoBookPanel = new JPanel(new FlowLayout());
+    private JSpinner spinner = new JSpinner();
 
     private void renderAdmin(JPanel panel)
     {
@@ -76,6 +77,7 @@ public class HomePage {
                 c++;
             }
         }
+        spinner.setModel(new SpinnerNumberModel(1, 1, edizioni.size(), 1));
         // se ci sono solo libri leggenti torna 0
         return c;
     }
@@ -102,7 +104,7 @@ public class HomePage {
         int c = refreshText(booksReadTextArea, booksToReadTextArea);
 
         if (!edizioni.isEmpty() && c != 0) {
-            JSpinner spinner = new JSpinner(new SpinnerNumberModel(1, 1, edizioni.size() + 1, 1));
+            spinner.setModel(new SpinnerNumberModel(1, 1, edizioni.size(), 1));
             JButton viewBtn = new JButton("VAI AL LIBRO");
 
             gotoBookPanel.add(spinner);
